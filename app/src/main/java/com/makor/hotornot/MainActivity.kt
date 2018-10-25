@@ -3,8 +3,6 @@ package com.makor.hotornot
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -20,6 +18,15 @@ import com.makor.hotornot.utils.getCroppedBitmap
 import com.makor.hotornot.utils.getUriFromFilePath
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+import android.R.attr.bitmap
+import android.graphics.*
+import android.widget.ImageView
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.R.attr.y
+import android.R.attr.x
+import android.R.attr.bitmap
+import com.makor.hotornot.utils.getPhotoBitmapTransformationMatrix
 
 private const val REQUEST_PERMISSIONS = 1
 private const val REQUEST_TAKE_PICTURE = 2
@@ -119,25 +126,19 @@ class MainActivity : AppCompatActivity() {
         val photoBitmap = BitmapFactory.decodeFile(file.absolutePath)
         val croppedBitmap = getCroppedBitmap(photoBitmap)
         classifyAndShowResult(croppedBitmap)
-        imagePhoto.setImageBitmap(photoBitmap)
+        imagePhoto.setImageBitmap(croppedBitmap)
     }
 
     private fun classifyAndShowResult(croppedBitmap: Bitmap) {
         runInBackground(
                 Runnable {
-                    val result = classifier.recognizeImage(croppedBitmap)
-                    showResult(result)
+                    val results = classifier.recognizeImage(croppedBitmap)
                 })
     }
 
     @Synchronized
     private fun runInBackground(runnable: Runnable) {
         handler.post(runnable)
-    }
-
-    private fun showResult(result: Result) {
-        textResult.text = result.result.toUpperCase()
-        layoutContainer.setBackgroundColor(getColorFromResult(result.result))
     }
 
     @Suppress("DEPRECATION")

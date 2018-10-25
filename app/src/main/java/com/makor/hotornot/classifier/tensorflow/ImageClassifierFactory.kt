@@ -25,7 +25,7 @@ object ImageClassifierFactory {
                 imageSize.toLong(),
                 labels,
                 IntArray(imageSize * imageSize),
-                FloatArray(imageSize * imageSize * COLOR_CHANNELS),
+                ByteArray(imageSize * imageSize * COLOR_CHANNELS),
                 FloatArray(labels.size),
                 TensorFlowInferenceInterface(assetManager, graphFilePath)
         )

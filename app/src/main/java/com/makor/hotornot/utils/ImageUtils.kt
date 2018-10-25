@@ -14,7 +14,7 @@ fun getCroppedBitmap(bitmap: Bitmap): Bitmap {
     return croppedBitmap
 }
 
-private fun getPhotoBitmapTransformationMatrix(bitmap: Bitmap): Matrix {
+fun getPhotoBitmapTransformationMatrix(bitmap: Bitmap): Matrix {
     val frameToCropTransformationMatrix = getTransformationMatrix(
             bitmap.width, bitmap.height,
             IMAGE_SIZE, IMAGE_SIZE,

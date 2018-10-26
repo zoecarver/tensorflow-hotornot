@@ -18,15 +18,10 @@ import com.makor.hotornot.utils.getCroppedBitmap
 import com.makor.hotornot.utils.getUriFromFilePath
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import android.R.attr.bitmap
-import android.graphics.*
-import android.widget.ImageView
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.R.attr.y
-import android.R.attr.x
-import android.R.attr.bitmap
-import com.makor.hotornot.utils.getPhotoBitmapTransformationMatrix
+import java.io.IOException
+import java.io.InputStream
 
 private const val REQUEST_PERMISSIONS = 1
 private const val REQUEST_TAKE_PICTURE = 2
@@ -74,7 +69,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun init() {
         createClassifier()
-        takePhoto()
+//        takePhoto()
+        classifyPhoto()
+
     }
 
     private fun createClassifier() {
@@ -93,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         val currentPhotoUri = getUriFromFilePath(this, photoFilePath)
 
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri)
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, TEST_IMAGE_SRC)
         takePictureIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
         if (takePictureIntent.resolveActivity(packageManager) != null) {
@@ -108,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.take_photo) {
-            takePhoto()
+//            takePhoto()
             true
         } else {
             super.onOptionsItemSelected(item)
@@ -118,21 +115,24 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val file = File(photoFilePath)
         if (requestCode == REQUEST_TAKE_PICTURE && file.exists()) {
-            classifyPhoto(file)
+//            classifyPhoto(file)
         }
     }
 
-    private fun classifyPhoto(file: File) {
-        val photoBitmap = BitmapFactory.decodeFile(file.absolutePath)
+    private fun classifyPhoto() {
+        val photoBitmap = getBitmapFromAssets(TEST_IMAGE_SRC) // BitmapFactory.decodeFile(file.absolutePath)
         val croppedBitmap = getCroppedBitmap(photoBitmap)
-        classifyAndShowResult(croppedBitmap)
+
         imagePhoto.setImageBitmap(croppedBitmap)
+
+        classifyAndShowResult(croppedBitmap)
     }
 
     private fun classifyAndShowResult(croppedBitmap: Bitmap) {
         runInBackground(
                 Runnable {
                     val results = classifier.recognizeImage(croppedBitmap)
+	                results.first()
                 })
     }
 
@@ -148,5 +148,53 @@ class MainActivity : AppCompatActivity() {
         } else {
             resources.getColor(R.color.not)
         }
+    }
+
+    private fun getBitmapFromAssets(fileName: String): Bitmap {
+        /*
+            AssetManager
+                Provides access to an application's raw asset files.
+        */
+
+        /*
+            public final AssetManager getAssets ()
+                Retrieve underlying AssetManager storage for these resources.
+        */
+        val am = assets
+        var `is`: InputStream? = null
+        try {
+            /*
+                public final InputStream open (String fileName)
+                    Open an asset using ACCESS_STREAMING mode. This provides access to files that
+                    have been bundled with an application as assets -- that is,
+                    files placed in to the "assets" directory.
+
+                    Parameters
+                        fileName : The name of the asset to open. This name can be hierarchical.
+                    Throws
+                        IOException
+            */
+            `is` = am.open(fileName)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        /*
+            BitmapFactory
+                Creates Bitmap objects from various sources, including files, streams, and byte-arrays.
+        */
+
+        /*
+            public static Bitmap decodeStream (InputStream is)
+                Decode an input stream into a bitmap. If the input stream is null, or cannot
+                be used to decode a bitmap, the function returns null. The stream's
+                position will be where ever it was after the encoded data was read.
+
+                Parameters
+                    is : The input stream that holds the raw data to be decoded into a bitmap.
+                Returns
+                    The decoded bitmap, or null if the image data could not be decoded.
+        */
+        return BitmapFactory.decodeStream(`is`)
     }
 }

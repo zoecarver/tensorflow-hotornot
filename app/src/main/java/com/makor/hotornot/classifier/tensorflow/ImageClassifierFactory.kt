@@ -20,13 +20,7 @@ object ImageClassifierFactory {
         val labels = getLabels(assetManager, labelsFilePath)
 
         return ImageClassifier(
-                inputName,
-                outputName,
-                imageSize.toLong(),
                 labels,
-                IntArray(imageSize * imageSize),
-                ByteArray(imageSize * imageSize * COLOR_CHANNELS),
-                FloatArray(labels.size),
                 TensorFlowInferenceInterface(assetManager, graphFilePath)
         )
     }

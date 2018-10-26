@@ -17,4 +17,4 @@ const val TEST_IMAGE_SRC = "test.jpg"
 
 const val MIN_CONF = 0.01
 
-/*const*/ val OUTPUT_NAMES = arrayOf<String>("detection_boxes", "detection_scores", "detection_classes", "num_detections")  // TODO make this a private enum
+/*const*/ val OUTPUT_NAMES = arrayOf("detection_boxes", "detection_scores", "detection_classes", "num_detections")  // TODO make this a private enum

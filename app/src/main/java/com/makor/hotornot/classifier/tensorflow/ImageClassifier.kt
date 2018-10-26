@@ -11,13 +11,7 @@ import java.util.*
 private const val ENABLE_LOG_STATS = false
 
 class ImageClassifier (
-        private val inputName: String,
-        private val outputName: String,
-        private val imageSize: Long,
         private val labels: List<String>,
-        private val imageBitmapPixels: IntArray,
-        private val imageNormalizedPixels: ByteArray,
-        private val results: FloatArray,
         private val tensorFlowInference: TensorFlowInferenceInterface
 ) : Classifier {
 

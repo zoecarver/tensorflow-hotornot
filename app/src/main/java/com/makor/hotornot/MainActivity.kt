@@ -1,37 +1,27 @@
 package com.makor.hotornot
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.provider.MediaStore
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.view.Menu
-import android.view.MenuItem
-import com.makor.hotornot.classifier.*
-import com.makor.hotornot.classifier.tensorflow.ImageClassifierFactory
-import com.makor.hotornot.utils.getCroppedBitmap
-import com.makor.hotornot.utils.getUriFromFilePath
-import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
+import com.makor.hotornot.classifier.*
+import com.makor.hotornot.classifier.tensorflow.ImageClassifierFactory
+import com.makor.hotornot.utils.getCroppedBitmap
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 import java.io.InputStream
+import kotlin.system.measureTimeMillis
 
 private const val REQUEST_PERMISSIONS = 1
-private const val REQUEST_TAKE_PICTURE = 2
 
 class MainActivity : AppCompatActivity() {
 
-    private val handler = Handler()
     private lateinit var classifier: Classifier
-    private var photoFilePath = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,8 +60,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun init() {
         createClassifier()
-        classifyPhoto()
 
+        val time = measureTimeMillis {
+            for (i in 0 until 100)
+                classifyPhoto()
+        }
+        println("100 tests takes: $time miliseconds")
     }
 
     private fun createClassifier() {
@@ -110,50 +104,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getBitmapFromAssets(fileName: String): Bitmap {
-        /*
-            AssetManager
-                Provides access to an application's raw asset files.
-        */
-
-        /*
-            public final AssetManager getAssets ()
-                Retrieve underlying AssetManager storage for these resources.
-        */
         val am = assets
-        var `is`: InputStream? = null
-        try {
-            /*
-                public final InputStream open (String fileName)
-                    Open an asset using ACCESS_STREAMING mode. This provides access to files that
-                    have been bundled with an application as assets -- that is,
-                    files placed in to the "assets" directory.
+        var inputStream: InputStream? = null
 
-                    Parameters
-                        fileName : The name of the asset to open. This name can be hierarchical.
-                    Throws
-                        IOException
-            */
-            `is` = am.open(fileName)
+        try {
+            inputStream = am.open(fileName)
         } catch (e: IOException) {
             e.printStackTrace()
         }
 
-        /*
-            BitmapFactory
-                Creates Bitmap objects from various sources, including files, streams, and byte-arrays.
-        */
-
-        /*
-            public static Bitmap decodeStream (InputStream is)
-                Decode an input stream into a bitmap. If the input stream is null, or cannot
-                be used to decode a bitmap, the function returns null. The stream's
-                position will be where ever it was after the encoded data was read.
-
-                Parameters
-                    is : The input stream that holds the raw data to be decoded into a bitmap.
-                Returns
-                    The decoded bitmap, or null if the image data could not be decoded.
-        */
-        return BitmapFactory.decodeStream(`is`)
+        return BitmapFactory.decodeStream(inputStream)
     }
 }

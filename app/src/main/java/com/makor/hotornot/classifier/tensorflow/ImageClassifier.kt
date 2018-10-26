@@ -80,6 +80,6 @@ class ImageClassifier (
             recognitions.add(pq.poll())
         }
         Trace.endSection() // "recognizeImage"
-        return recognitions
+        return recognitions.filter { it.confidence > 0.5 }
     }
 }

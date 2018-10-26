@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import java.io.IOException
 import java.io.InputStream
 
@@ -69,7 +70,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun init() {
         createClassifier()
-//        takePhoto()
         classifyPhoto()
 
     }
@@ -85,69 +85,28 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun takePhoto() {
-        photoFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + "/${System.currentTimeMillis()}.jpg"
-        val currentPhotoUri = getUriFromFilePath(this, photoFilePath)
-
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, TEST_IMAGE_SRC)
-        takePictureIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_TAKE_PICTURE)
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.activity_main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.take_photo) {
-//            takePhoto()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        val file = File(photoFilePath)
-        if (requestCode == REQUEST_TAKE_PICTURE && file.exists()) {
-//            classifyPhoto(file)
-        }
-    }
-
     private fun classifyPhoto() {
         val photoBitmap = getBitmapFromAssets(TEST_IMAGE_SRC) // BitmapFactory.decodeFile(file.absolutePath)
         val croppedBitmap = getCroppedBitmap(photoBitmap)
 
-        imagePhoto.setImageBitmap(croppedBitmap)
-
         classifyAndShowResult(croppedBitmap)
+
+        imagePhoto.setImageBitmap(croppedBitmap)
     }
 
     private fun classifyAndShowResult(croppedBitmap: Bitmap) {
-        runInBackground(
-                Runnable {
-                    val results = classifier.recognizeImage(croppedBitmap)
-	                results.first()
-                })
-    }
+        val results = classifier.recognizeImage(croppedBitmap)
+        println("results: $results")
 
-    @Synchronized
-    private fun runInBackground(runnable: Runnable) {
-        handler.post(runnable)
-    }
+        for (result in results)
+            for (x in 0 until 20)
+                for (y in 0 until 20)
+                    croppedBitmap.setPixel(
+                        result.getLocation().centerX().toInt() + x - 10,
+                        result.getLocation().centerY().toInt() + y - 10,
+                        if (result.id == "0") Color.YELLOW else Color.WHITE)
 
-    @Suppress("DEPRECATION")
-    private fun getColorFromResult(result: String): Int {
-        return if (result == getString(R.string.hot)) {
-            resources.getColor(R.color.hot)
-        } else {
-            resources.getColor(R.color.not)
-        }
+        results.first()
     }
 
     private fun getBitmapFromAssets(fileName: String): Bitmap {
